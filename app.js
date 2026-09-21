@@ -65,8 +65,8 @@ class NeuralNetwork {
     let totalLoss = 0;
     const L = this.W.length - 1;
 
-    for (const { x, label } of batch) {
-      const activations = this.forward(x);
+    for (const { x: px, y: py, label } of batch) {
+      const activations = this.forward([px, py]);
       const output = activations[activations.length - 1][0];
       const y = label;
       const eps = 1e-9;
