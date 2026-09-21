@@ -1,0 +1,14 @@
+{
+  "name": "neura",
+  "version": "1.0.0",
+  "description": "A neural network learning to separate two spirals, visualized live in the browser, no ML libraries.",
+  "private": true,
+  "scripts": {
+    "dev": "npx --yes serve -l 8080 ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/rafaelsodrepsc/neura.git"
+  },
+  "license": "MIT"
+}
