@@ -126,7 +126,7 @@ class NeuralNetwork {
 
 // --- estado --------------------------------------------------------------
 
-const HIDDEN_SIZES = [2, 12, 12, 1];
+const HIDDEN_SIZES = [2, 16, 16, 1];
 let data = buildDataset();
 let net = new NeuralNetwork(HIDDEN_SIZES);
 let running = true;
