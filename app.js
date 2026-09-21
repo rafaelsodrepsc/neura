@@ -165,8 +165,13 @@ function readTokens() {
 
 // --- desenho: campo de decisão ---------------------------------------------
 
-const FIELD_RES = 48;
+const FIELD_RES = 56;
 const FIELD_RANGE = 1.1;
+
+const fieldBuffer = document.createElement("canvas");
+fieldBuffer.width = FIELD_RES;
+fieldBuffer.height = FIELD_RES;
+const fieldBufferCtx = fieldBuffer.getContext("2d");
 
 function hexToRgb(hex) {
   const m = hex.replace("#", "").match(/.{1,2}/g);
@@ -176,32 +181,42 @@ function hexToRgb(hex) {
 function drawField() {
   const tokens = readTokens();
   const w = fieldCanvas.width, h = fieldCanvas.height;
-  fieldCtx.clearRect(0, 0, w, h);
 
   const rgbA = hexToRgb(tokens.accentA.startsWith("#") ? tokens.accentA : "#6d3bff");
   const rgbB = hexToRgb(tokens.accentB.startsWith("#") ? tokens.accentB : "#00a887");
 
-  const cell = w / FIELD_RES;
-  for (let gx = 0; gx < FIELD_RES; gx++) {
-    for (let gy = 0; gy < FIELD_RES; gy++) {
+  const img = fieldBufferCtx.createImageData(FIELD_RES, FIELD_RES);
+  for (let gy = 0; gy < FIELD_RES; gy++) {
+    for (let gx = 0; gx < FIELD_RES; gx++) {
       const x = (gx / (FIELD_RES - 1)) * (2 * FIELD_RANGE) - FIELD_RANGE;
       const y = (gy / (FIELD_RES - 1)) * (2 * FIELD_RANGE) - FIELD_RANGE;
       const p = net.predict([x, y]);
-      const t = Math.abs(p - 0.5) * 2; // confiança
-      const rgb = p > 0.5 ? rgbB : rgbA;
-      const alpha = 0.10 + t * 0.28;
-      fieldCtx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
-      fieldCtx.fillRect(gx * cell, gy * cell, cell + 1, cell + 1);
+      const idx = (gy * FIELD_RES + gx) * 4;
+      img.data[idx] = rgbA[0] + (rgbB[0] - rgbA[0]) * p;
+      img.data[idx + 1] = rgbA[1] + (rgbB[1] - rgbA[1]) * p;
+      img.data[idx + 2] = rgbA[2] + (rgbB[2] - rgbA[2]) * p;
+      const conf = Math.abs(p - 0.5) * 2;
+      img.data[idx + 3] = Math.round(255 * (0.14 + conf * 0.5));
     }
   }
+  fieldBufferCtx.putImageData(img, 0, 0);
+
+  fieldCtx.clearRect(0, 0, w, h);
+  fieldCtx.imageSmoothingEnabled = true;
+  fieldCtx.imageSmoothingQuality = "high";
+  fieldCtx.drawImage(fieldBuffer, 0, 0, FIELD_RES, FIELD_RES, 0, 0, w, h);
 
   for (const { x, y, label } of data) {
     const px = ((x + FIELD_RANGE) / (2 * FIELD_RANGE)) * w;
     const py = ((y + FIELD_RANGE) / (2 * FIELD_RANGE)) * h;
+    fieldCtx.save();
+    fieldCtx.shadowBlur = 9;
+    fieldCtx.shadowColor = label === 0 ? tokens.accentA : tokens.accentB;
     fieldCtx.beginPath();
     fieldCtx.arc(px, py, 3.4, 0, Math.PI * 2);
     fieldCtx.fillStyle = label === 0 ? tokens.accentA : tokens.accentB;
     fieldCtx.fill();
+    fieldCtx.restore();
   }
 }
 
