@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">neura</span>
+    </div>
+    <p class="tagline">uma rede neural aprendendo a separar duas espirais, em tempo real, direto no navegador</p>
+  </header>
+
+  <main class="layout">
+    <section class="panel panel-field">
+      <h2 class="panel-title">campo de decisão</h2>
+      <canvas id="fieldCanvas" width="560" height="560"></canvas>
+    </section>
+
+    <section class="panel panel-side">
+      <div class="panel-block">
+        <h2 class="panel-title">arquitetura</h2>
+        <canvas id="netCanvas" width="560" height="300"></canvas>
+      </div>
+      <div class="panel-block">
+        <h2 class="panel-title">perda (loss)</h2>
+        <canvas id="lossCanvas" width="560" height="140"></canvas>
+      </div>
+      <dl class="stats">
+        <div><dt>época</dt><dd id="statEpoch">0</dd></div>
+        <div><dt>loss</dt><dd id="statLoss">–</dd></div>
+        <div><dt>acurácia</dt><dd id="statAcc">–</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="controls">
+    <button id="playBtn" class="btn btn-primary" type="button">pausar</button>
+    <button id="resetBtn" class="btn" type="button">reiniciar</button>
+
+    <label class="slider">
+      <span>velocidade</span>
+      <input id="speedRange" type="range" min="1" max="20" value="4" />
+    </label>
+
+    <label class="slider">
+      <span>taxa de aprendizado</span>
+      <input id="lrRange" type="range" min="1" max="100" value="30" />
+    </label>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
