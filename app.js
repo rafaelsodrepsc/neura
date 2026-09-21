@@ -222,7 +222,10 @@ function drawField() {
 
 // --- desenho: diagrama da rede ----------------------------------------------
 
-function drawNetwork() {
+const PULSE_CYCLE_MS = 1600;
+const PULSE_WIDTH = 90;
+
+function drawNetwork(now) {
   const tokens = readTokens();
   const w = netCanvas.width, h = netCanvas.height;
   netCtx.clearRect(0, 0, w, h);
@@ -235,6 +238,9 @@ function drawNetwork() {
     return new Array(count).fill(0).map((_, j) => ({ x: colX[i], y: gap * (j + 1) }));
   });
 
+  const sweepT = (now % PULSE_CYCLE_MS) / PULSE_CYCLE_MS;
+  const sweepX = margin + sweepT * (w - 2 * margin);
+
   // arestas
   for (let l = 0; l < net.W.length; l++) {
     const W = net.W[l];
@@ -244,8 +250,10 @@ function drawNetwork() {
         const from = positions[l][k];
         const to = positions[l + 1][j];
         const mag = Math.min(Math.abs(weight), 2.2) / 2.2;
-        netCtx.globalAlpha = 0.08 + mag * 0.55;
-        netCtx.lineWidth = 0.6 + mag * 2;
+        const midX = (from.x + to.x) / 2;
+        const pulse = Math.max(0, 1 - Math.abs(midX - sweepX) / PULSE_WIDTH);
+        netCtx.globalAlpha = Math.min(0.08 + mag * 0.45 + pulse * 0.5, 1);
+        netCtx.lineWidth = 0.6 + mag * 2 + pulse * 1.6;
         netCtx.strokeStyle = weight >= 0 ? tokens.accentA : tokens.accentB;
         netCtx.beginPath();
         netCtx.moveTo(from.x, from.y);
@@ -257,14 +265,19 @@ function drawNetwork() {
   netCtx.globalAlpha = 1;
 
   // nós
-  for (const layer of positions) {
+  positions.forEach((layer, i) => {
+    const pulse = Math.max(0, 1 - Math.abs(colX[i] - sweepX) / PULSE_WIDTH);
     for (const { x, y } of layer) {
+      netCtx.save();
+      netCtx.shadowBlur = 3 + pulse * 16;
+      netCtx.shadowColor = tokens.accentA;
       netCtx.beginPath();
-      netCtx.arc(x, y, 5, 0, Math.PI * 2);
+      netCtx.arc(x, y, 4.5 + pulse * 2.5, 0, Math.PI * 2);
       netCtx.fillStyle = tokens.text;
       netCtx.fill();
+      netCtx.restore();
     }
-  }
+  });
 }
 
 // --- desenho: curva de loss --------------------------------------------------
@@ -309,7 +322,7 @@ function accuracy() {
   return correct / data.length;
 }
 
-function tick() {
+function tick(now) {
   if (running) {
     const stepsPerFrame = Number(speedRange.value);
     const lr = Number(lrRange.value) * 0.005; // momentum multiplica o passo efetivo em ~10x
@@ -328,7 +341,7 @@ function tick() {
   }
 
   drawField();
-  drawNetwork();
+  drawNetwork(now);
   drawLoss();
   requestAnimationFrame(tick);
 }
