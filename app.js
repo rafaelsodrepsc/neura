@@ -22,11 +22,15 @@ function buildDataset() {
 const tanh = Math.tanh;
 const sigmoid = (z) => 1 / (1 + Math.exp(-z));
 
+const MOMENTUM = 0.9;
+
 class NeuralNetwork {
   constructor(sizes) {
     this.sizes = sizes;
     this.W = [];
     this.b = [];
+    this.vW = [];
+    this.vB = [];
     for (let l = 0; l < sizes.length - 1; l++) {
       const fanIn = sizes[l], fanOut = sizes[l + 1];
       const scale = Math.sqrt(2 / fanIn);
@@ -38,6 +42,8 @@ class NeuralNetwork {
       }
       this.W.push(w);
       this.b.push(new Array(fanOut).fill(0));
+      this.vW.push(w.map((row) => row.map(() => 0)));
+      this.vB.push(new Array(fanOut).fill(0));
     }
   }
 
@@ -107,9 +113,11 @@ class NeuralNetwork {
     for (let l = 0; l < this.W.length; l++) {
       for (let j = 0; j < this.W[l].length; j++) {
         for (let k = 0; k < this.W[l][j].length; k++) {
-          this.W[l][j][k] -= lr * gradW[l][j][k] / n;
+          this.vW[l][j][k] = MOMENTUM * this.vW[l][j][k] - lr * gradW[l][j][k] / n;
+          this.W[l][j][k] += this.vW[l][j][k];
         }
-        this.b[l][j] -= lr * gradB[l][j] / n;
+        this.vB[l][j] = MOMENTUM * this.vB[l][j] - lr * gradB[l][j] / n;
+        this.b[l][j] += this.vB[l][j];
       }
     }
     return totalLoss / n;
@@ -289,7 +297,7 @@ function accuracy() {
 function tick() {
   if (running) {
     const stepsPerFrame = Number(speedRange.value);
-    const lr = Number(lrRange.value) / 100;
+    const lr = Number(lrRange.value) * 0.005; // momentum multiplica o passo efetivo em ~10x
     for (let s = 0; s < stepsPerFrame; s++) {
       lastLoss = net.trainStep(data, lr);
       epoch++;
